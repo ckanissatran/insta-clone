@@ -1,21 +1,76 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text } from 'react-native'
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+import { Provider } from 'react-redux'
+import { createStore, applyMiddleware } from 'redux'
+import rootReducer from './redux/reducers'
+import thunk from 'redux-thunk'
+const store = createStore(rootReducer, applyMiddleware(thunk))
+
+import firebase from 'firebase'
+import firebaseConfig from './keys'
+
+import { NavigationContainer } from '@react-navigation/native'
+import { createStackNavigator } from '@react-navigation/stack'
+
+import LandingScreen from './components/auth/Landing'
+import RegisterScreen from './components/auth/Register'
+import LoginScreen from './components/auth/Login'
+import MainScreen from './components/main/Main'
+import AddScreen from './components/main/Add'
+
+
+if(firebase.apps.length === 0){
+  firebase.initializeApp(firebaseConfig)
+  console.log('Firebase Connected!')
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const Stack = createStackNavigator();
+export default function App() {
+  const [loaded, toggleLoaded] = useState(false)
+  const [loggedIn, toggleLoggedIn] = useState(false)
+
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user){
+        toggleLoggedIn(false)
+        toggleLoaded(true)
+      }else {
+        toggleLoggedIn(true)
+        toggleLoaded(true)
+      }
+    })
+    
+  }, [])
+  
+  if(!loaded){
+    return (
+      <View style={{flex: 1, justifyContent: 'center'}}>
+        <Text>Loading...</Text>
+      </View>
+    )
+  } 
+
+  if (!loggedIn){
+    return (
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Landing">
+          <Stack.Screen name='Landing' component={LandingScreen} options={{ headerShown: false }}/>
+          <Stack.Screen name='Register' component={RegisterScreen} />
+          <Stack.Screen name='Login' component={LoginScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>    
+    );
+  }
+
+  return(
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Main">
+            <Stack.Screen name='Main' component={MainScreen} options={{ headerShown: false }}/>
+            <Stack.Screen name='Add' component={AddScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
+  )
+}
