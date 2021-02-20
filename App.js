@@ -8,7 +8,7 @@ import thunk from 'redux-thunk'
 const store = createStore(rootReducer, applyMiddleware(thunk))
 
 import firebase from 'firebase'
-import firebaseConfig from './keys'
+import { firebaseConfig } from './keys'
 
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
@@ -18,7 +18,7 @@ import RegisterScreen from './components/auth/Register'
 import LoginScreen from './components/auth/Login'
 import MainScreen from './components/main/Main'
 import AddScreen from './components/main/Add'
-
+import SaveScreen from './components/main/Save'
 
 if(firebase.apps.length === 0){
   firebase.initializeApp(firebaseConfig)
@@ -26,7 +26,7 @@ if(firebase.apps.length === 0){
 }
 
 const Stack = createStackNavigator();
-export default function App() {
+export default function App({ navigation }) {
   const [loaded, toggleLoaded] = useState(false)
   const [loggedIn, toggleLoggedIn] = useState(false)
 
@@ -68,7 +68,9 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Main">
             <Stack.Screen name='Main' component={MainScreen} options={{ headerShown: false }}/>
-            <Stack.Screen name='Add' component={AddScreen} />
+            <Stack.Screen name='Add' component={AddScreen} navigation={navigation}/>
+            <Stack.Screen name='Save' component={SaveScreen} />
+
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
