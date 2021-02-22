@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Image, FlatList, StyleSheet, Button } from 'react-native'
+
 import firebase from 'firebase'
 require('firebase/firestore')
 import { connect } from 'react-redux'
@@ -9,10 +10,10 @@ function Feed({ following, users, usersLoaded, navigation }) {
 
     useEffect(() => {
         let posts = [];
-        if(usersLoaded === following.length){
+        if(usersLoaded === following.length && following.length !== 0){
             for(let i = 0; i < following.length; i++){
                 const user = users.find(el => el.uid === following[i])
-                if (user !== undefined){
+                if (user !== undefined && user.posts.length > 0){
                     posts = [...posts, user.posts]
                 }
             }
