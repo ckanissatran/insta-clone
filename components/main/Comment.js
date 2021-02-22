@@ -73,6 +73,9 @@ function Comment({ route, users, fetchUsersData }) {
                 data={comments}
                 renderItem={({ item }) => (
                     <View>
+                        {item.user !== undefined ? 
+                            <Text>{item.user.name}</Text>
+                        : null}
                         <Text>{item.text}</Text>
                     </View>
                 )}
