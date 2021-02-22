@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, Image, FlatList, StyleSheet } from 'react-native'
+import { View, Text, Image, FlatList, StyleSheet, Button } from 'react-native'
+
 import firebase from 'firebase'
 require('firebase/firestore')
 import { connect } from 'react-redux'
 
-function Profile({ currentUser, posts, route }) {
+function Profile({ currentUser, posts, route, following }) {
     const [userPosts, setUserPosts] = useState([]);
-    const [user, setUser] = useState([]);
+    const [user, setUser] = useState(null);
+    const [userFollowing, setUserFollowing] = useState(false);
 
     useEffect(() => {
         if(route.params.uid === firebase.auth().currentUser.uid){
@@ -14,32 +16,62 @@ function Profile({ currentUser, posts, route }) {
             setUserPosts(posts)
         }else {
             firebase.firestore()
-            .collection("users")
-            .doc(route.params.uid)
-            .get()
-            .then((snapshot) => {
-                if(snapshot.exists){
-                    setUser(snapshot.data());
-                }else {
-                    console.log('Does not exist')
-                }
-            })
-            firebase.firestore()
-            .collection("posts")
-            .doc(route.params.uid)
-            .collection("userPosts")
-            .orderBy("creation", 'asc')
-            .get()
-            .then((snapshot) => {
-                let posts = snapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    const id = doc.id;
-                    return { id, ...data }
+                .collection("users")
+                .doc(route.params.uid)
+                .get()
+                .then((snapshot) => {
+                    if(snapshot.exists){
+                        setUser(snapshot.data());
+                    }else {
+                        console.log('Does not exist')
+                    }
                 })
-                setUserPosts(posts)
-            })
+            firebase.firestore()
+                .collection("posts")
+                .doc(route.params.uid)
+                .collection("userPosts")
+                .orderBy("creation", 'asc')
+                .get()
+                .then((snapshot) => {
+                    let posts = snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        const id = doc.id;
+                        return { id, ...data }
+                    })
+                    setUserPosts(posts)
+                })
         }
-    }, [route.params.uid])
+
+        if (following.indexOf(route.params.uid) > -1){
+            setUserFollowing(true)
+        }else {
+            setUserFollowing(false)
+        }
+    }, [route.params.uid, following])
+
+    const onFollow = () => {
+        firebase
+            .firestore()
+            .collection('following')
+            .doc(firebase.auth().currentUser.uid)
+            .collection('userFollowing')
+            .doc(route.params.uid)
+            .set({})
+    }
+
+    const onUnfollow = () => {
+        firebase
+            .firestore()
+            .collection('following')
+            .doc(firebase.auth().currentUser.uid)
+            .collection('userFollowing')
+            .doc(route.params.uid)
+            .delete()
+    }
+
+    const onLogout = () => {
+        firebase.auth().signOut();
+    }
 
     if(user === null){
         return <View/>
@@ -50,6 +82,24 @@ function Profile({ currentUser, posts, route }) {
             <View style={styles.containerInfo}>
                 <Text>{user.name}</Text>
                 <Text>{user.email}</Text>
+                {route.params.uid !== firebase.auth().currentUser.uid 
+                    ? <View>
+                        {userFollowing 
+                            ? <Button
+                                title='Following'
+                                onPress={() => onUnfollow()}
+                            /> 
+                            : <Button
+                                title='Follow'
+                                onPress={() => onFollow()}
+                            /> 
+                        }
+                    </View>
+                    : <Button
+                        title='Logout'
+                        onPress={() => onLogout()}
+                /> 
+                }
             </View>
             <View style={styles.containerGallery}>
                 <FlatList
@@ -91,7 +141,8 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (store) => ({
     currentUser: store.userState.currentUser, 
-    posts: store.userState.posts
+    posts: store.userState.posts,
+    following: store.userState.following
 })
 
 export default connect(mapStateToProps, null)(Profile);

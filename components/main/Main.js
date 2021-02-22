@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import firebase from 'firebase'
 import { bindActionCreators } from 'redux'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import { fetchUser, fetchUserPosts } from '../../redux/actions/index'
+import { fetchUser, fetchUserPosts, fetchUserFollowing, clearData } from '../../redux/actions/index'
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs'
 import FeedScreen from './Feed'
 import ProfileScreen from './Profile'
@@ -15,17 +15,19 @@ const EmptyScreen = () => {
     return null
 }
 
-const Main = ({fetchUser, fetchUserPosts, currentUser, navigation}) => {
+const Main = ({fetchUser, fetchUserPosts, fetchUserFollowing, clearData, navigation}) => {
     useEffect(() => {
+        clearData();
         fetchUser();
         fetchUserPosts();
+        fetchUserFollowing();
     }, [])
 
     return(
         <Tab.Navigator initialRouteName='Feed' labeled={false}>
             <Tab.Screen 
                 name="Feed" 
-                component={FeedScreen}
+                component={FeedScreen} navigation={navigation}
                 options={{
                     tabBarIcon: ({color, size}) => (
                         <MaterialCommunityIcons name="home" color={color} size={26}/>
@@ -83,6 +85,6 @@ const mapStateToProps = (store) => ({
 })
 
 const mapDispatchProps = (dispatch) => 
-    bindActionCreators({ fetchUser, fetchUserPosts }, dispatch)
+    bindActionCreators({ fetchUser, fetchUserPosts, fetchUserFollowing, clearData }, dispatch)
 
 export default connect(mapStateToProps, mapDispatchProps)(Main);
