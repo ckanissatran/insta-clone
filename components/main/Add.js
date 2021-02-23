@@ -66,7 +66,7 @@ export default function Add({navigation}) {
                 onPress={() => {
                     setType(
                         type === Camera.Constants.Type.back
-                            ? Camera.Constants.type.front
+                            ? Camera.Constants.Type.front
                             : Camera.Constants.Type.back
                 );
             }}/>
