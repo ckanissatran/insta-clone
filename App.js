@@ -72,7 +72,7 @@ export default function App({ navigation }) {
               //options={{ headerShown: false }}
             />
             <Stack.Screen name='Add' component={AddScreen} navigation={navigation}/>
-            <Stack.Screen name='Save' component={SaveScreen} />
+            <Stack.Screen name='Save' component={SaveScreen} navigation={navigation}/>
             <Stack.Screen name='Comment' component={CommentScreen} />
         </Stack.Navigator>
       </NavigationContainer>
